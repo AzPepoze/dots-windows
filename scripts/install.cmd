@@ -1,7 +1,7 @@
 @echo off
 echo.
 echo #############################
-echo INSTALLING PREREQUISITES
+echo INSTALLING
 echo #############################
 echo.
 setlocal
@@ -66,7 +66,7 @@ for %%p in (%WINGET_PKGS%) do (
 )
 
 echo.
-echo All prerequisites installed!
+echo All installed!
 endlocal
 goto :EOF
 
