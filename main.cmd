@@ -8,4 +8,3 @@ echo Pulling latest changes...
 git pull
 echo.
 call scripts/run.cmd
-call scripts/reload.cmd
