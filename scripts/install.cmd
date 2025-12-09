@@ -14,7 +14,7 @@ setlocal
 set SCOOP_PKGS=steam micaforeveryone komorebi yasb whkd nerd-fonts/JetBrains-Mono
 
 :: List of Winget Package IDs to install (Space separated)
-set WINGET_PKGS=Microsoft.VisualStudioCode.Insiders  SoftDeluxe.FreeDownloadManager StartIsBack.StartAllBack Zen-Team.Zen-Browser
+set WINGET_PKGS=Microsoft.VisualStudioCode.Insiders  SoftDeluxe.FreeDownloadManager StartIsBack.StartAllBack Zen-Team.Zen-Browser AutoHotkey.AutoHotkey Flow-Launcher.Flow-Launcher JanDeDobbeleer.OhMyPosh
 
 :: ==============================================================================
 :: MAIN SCRIPT

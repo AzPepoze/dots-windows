@@ -1,0 +1,1 @@
+oh-my-posh init pwsh --config "C:\dots-windows\dots\user\Documents\PowerShell\1_shell.omp.json" | Invoke-Expression

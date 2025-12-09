@@ -13,10 +13,10 @@ taskkill /IM yasb.exe /F >nul 2>&1
 
 echo Starting komorebic and yasb...
 
-komorebic.exe start --whkd
-komorebic.exe focus-follows-mouse enable
-@REM timeout /t 1 /nobreak >nul
-
 start "" yasb
+
+start "" komorebic.exe start --whkd
+timeout /t 2 /nobreak >nul
+komorebic.exe focus-follows-mouse enable
 
 echo Reload complete.
