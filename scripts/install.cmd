@@ -66,6 +66,7 @@ for %%p in (%WINGET_PKGS%) do (
 )
 
 echo.
+start "" komorebic.exe quickstart
 echo All installed!
 endlocal
 goto :EOF
