@@ -4,6 +4,10 @@ REM -------------------------------------------------------
 REM [Runall Mode]
 REM -------------------------------------------------------
 if /I "%1"=="runall" (
+	@REM echo Pulling latest changes...
+	@REM git pull
+	@REM call scripts/load_config.cmd
+
     echo [RUNALL MODE]
 
     echo [DEBUG] Initial Path: %cd%

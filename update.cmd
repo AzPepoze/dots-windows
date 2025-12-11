@@ -1,0 +1,3 @@
+echo Pulling latest changes...
+git pull
+call scripts/load_config.cmd

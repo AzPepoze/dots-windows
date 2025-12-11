@@ -20,8 +20,9 @@ Ensure you have the following software installed:
 
 2. **Run the installation script:**
    Double-click **`main.cmd`** or run it from the terminal:
+
      ```bash
-     .\main.cmd
+     ./main.cmd
      ```
 
 > **⚠️ Warning:** This will overwrite existing `komorebi.json` and `.config/yasb` files in your user profile. Back up your existing configs before running!
