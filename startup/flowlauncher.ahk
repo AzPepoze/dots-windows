@@ -1,3 +1,6 @@
+#Requires AutoHotkey v1.1
+
+WinGetTitle, CurrentWindowTitle, ahk_class Chrome_WidgetWin_1
 global start := 0
 
 CheckFlowLauncher() {
@@ -6,12 +9,7 @@ CheckFlowLauncher() {
 }
 
 StartFlowLauncher() {
-    exePath := A_LocalAppData . "\FlowLauncher\Flow.Launcher.exe"
-    if (FileExist(exePath)) {
-        Run, %exePath%
-    } else {
-        Run, Flow.Launcher.exe
-    }
+    Run, "%localappdata%\FlowLauncher\Flow.Launcher.exe"
 }
 
 ~+LWin::
@@ -28,9 +26,9 @@ return
 ~LWin Up::
     if (A_PriorKey = "LWin" && A_TickCount - start < 500) {
         if (CheckFlowLauncher()) {
-             Send, ^!{Space}
+            !Space::Send, {Space}
         } else {
-             StartFlowLauncher()
+            StartFlowLauncher()
         }
     }
     start := 0
