@@ -1,22 +1,22 @@
 @echo off
-echo.
-echo #############################
-echo RELOADING
-echo #############################
-echo.
-echo Stopping komorebic and yasb...
+@REM echo.
+@REM echo #############################
+@REM echo RELOADING
+@REM echo #############################
+@REM echo.
+@REM echo Stopping komorebic and yasb...
 
-taskkill /IM komorebic.exe /F >nul 2>&1
-taskkill /IM yasb.exe /F >nul 2>&1
+@REM taskkill /IM komorebic.exe /F >nul 2>&1
+@REM taskkill /IM yasb.exe /F >nul 2>&1
 
+@REM @REM timeout /t 2 /nobreak >nul
+
+@REM echo Starting komorebic and yasb...
+
+@REM start "" yasb
+
+@REM start "" komorebic.exe start --whkd
 @REM timeout /t 2 /nobreak >nul
+@REM komorebic.exe focus-follows-mouse enable
 
-echo Starting komorebic and yasb...
-
-start "" yasb
-
-start "" komorebic.exe start --whkd
-timeout /t 2 /nobreak >nul
-komorebic.exe focus-follows-mouse enable
-
-echo Reload complete.
+@REM echo Reload complete.

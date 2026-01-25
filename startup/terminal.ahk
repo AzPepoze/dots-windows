@@ -1,5 +1,7 @@
-#t::
-    Run, wt,, UseErrorLevel
-    if (ErrorLevel)
-        Run, powershell
-return
+#t:: {
+    try {
+        Run "wt"
+    } catch {
+        Run "powershell"
+    }
+}
