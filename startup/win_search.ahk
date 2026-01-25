@@ -15,7 +15,9 @@ LWin::
         ; Send a mask key (vkE8) to prevent the Start Menu from popping up
         Send "{Blind}{vkE8}"
         Send "{Blind}{LWin Up}"
-        Send "^ " ; Send Ctrl + Space
+        
+        ; Send Win (#) + Alt (!) + Space
+        Send "#!{Space}" 
     }
     else
     {
