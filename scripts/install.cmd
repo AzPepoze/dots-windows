@@ -15,7 +15,7 @@ set SCOOP_PKGS=steam micaforeveryone
 
 :: List of Winget Package IDs to install (space separated)
 :: (VS Code is handled separately due to custom override)
-set WINGET_PKGS=SoftDeluxe.FreeDownloadManager Nilesoft.Shell StartIsBack.StartAllBack Microsoft.PowerToys Zen-Team.Zen-Browser AutoHotkey.AutoHotkey JanDeDobbeleer.OhMyPosh
+set WINGET_PKGS=SoftDeluxe.FreeDownloadManager Nilesoft.Shell StartIsBack.StartAllBack Microsoft.PowerToys Zen-Team.Zen-Browser AutoHotkey.AutoHotkey JanDeDobbeleer.OhMyPosh AntibodySoftware.WizTree
 
 :: ==============================================================================
 :: MAIN SCRIPT
