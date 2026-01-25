@@ -8,7 +8,7 @@ This repository contains my personal configuration files (dotfiles).
 
 Ensure you have the following software installed:
 
--    [Scoop](https://scoop.sh/)
+- [Scoop](https://scoop.sh/)
 
 ## Installation
 
@@ -25,8 +25,12 @@ Ensure you have the following software installed:
      ./main.cmd
      ```
 
-> **⚠️ Warning:** This will overwrite existing `komorebi.json` and `.config/yasb` files in your user profile. Back up your existing configs before running!
-
 ## Customization
 
 To modify the configurations, edit the files in `dots/user/` and run `main.cmd` again to apply the changes to your user profile.
+
+## Acknowledgements
+
+Thanks to the following projects for inspiration and resources:
+
+- [Blur Explorer](https://github.com/Maplespe/ExplorerBlurMica)
