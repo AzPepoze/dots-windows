@@ -1,66 +1,80 @@
 @echo off
-echo.
-echo #############################
-echo INSTALLING
-echo #############################
-echo.
 setlocal EnableDelayedExpansion
 
-:: ==============================================================================
-:: CONFIGURATION
-:: ==============================================================================
+echo.
+echo ================================================================================
+echo  INSTALLATION SCRIPT
+echo ================================================================================
+echo.
 
-:: List of Scoop packages to install (space separated)
-set SCOOP_PKGS=steam micaforeveryone
+REM ==============================================================================
+REM CONFIGURATION
+REM ==============================================================================
 
-:: List of Winget Package IDs to install (space separated)
-:: (VS Code is handled separately due to custom override)
-set WINGET_PKGS=SoftDeluxe.FreeDownloadManager M2Team.NanaZip Nilesoft.Shell StartIsBack.StartAllBack Microsoft.PowerToys Zen-Team.Zen-Browser AutoHotkey.AutoHotkey JanDeDobbeleer.OhMyPosh AntibodySoftware.WizTree Tailscale.Tailscale Parsec.Parsec
+REM Scoop packages to install (space separated)
+set SCOOP_PKGS=micaforeveryone
 
-:: ==============================================================================
-:: MAIN SCRIPT
-:: ==============================================================================
+REM Winget packages to install (space separated)
+REM Note: VS Code is handled separately with custom override
+set WINGET_PKGS=SoftDeluxe.FreeDownloadManager M2Team.NanaZip Nilesoft.Shell StartIsBack.StartAllBack Microsoft.PowerToys Zen-Team.Zen-Browser AutoHotkey.AutoHotkey JanDeDobbeleer.OhMyPosh AntibodySoftware.WizTree Tailscale.Tailscale Parsec.Parsec Devolutions.UniGetUI
 
-echo Checking for Scoop...
+REM Steam installation URL and paths
+set STEAM_URL=https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe
+
+REM ==============================================================================
+REM MAIN SCRIPT
+REM ==============================================================================
+
+echo [*] Checking prerequisites...
+echo.
+
 where scoop >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] Scoop is not installed.
-    echo Please install Scoop first by running the following command in PowerShell:
-    echo     iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+    echo.
+    echo Please install Scoop first by running in PowerShell:
+    echo iex "^& {$^(irm get.scoop.sh^)} -RunAsAdmin"
     echo.
     pause
     exit /b 1
 )
+echo [OK] Scoop found
 
-echo Checking for Winget...
 where winget >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] Winget is not installed or not in PATH.
-    echo Please install "App Installer" from the Microsoft Store or GitHub.
+    echo.
+    echo Please install "App Installer" from:
+    echo - Microsoft Store, or
+    echo - https://github.com/microsoft/winget-cli
     echo.
     pause
     exit /b 1
 )
+echo [OK] Winget found
+echo.
+
+echo [*] Setting up Scoop buckets...
+echo.
+
+scoop bucket list | find /i "extras" >nul 2>&1 || scoop bucket add extras
+scoop bucket list | find /i "games" >nul 2>&1 || scoop bucket add games
+scoop bucket list | find /i "nerd-fonts" >nul 2>&1 || scoop bucket add nerd-fonts
 
 echo.
-echo Adding necessary Scoop buckets...
-
-call scoop bucket add extras
-call scoop bucket add games
-call scoop bucket add nerd-fonts
-
+echo [*] Installing Scoop packages...
 echo.
-echo Installing applications via Scoop...
 
 for %%p in (%SCOOP_PKGS%) do (
     call :InstallScoop %%p
+    echo.
 )
 
 echo.
-echo Installing applications via Winget...
-
+echo [*] Installing Winget packages...
 echo.
-echo [Winget] Installing Microsoft Visual Studio Code with custom options...
+
+echo [Winget] VS Code (with custom override)...
 
 winget install -e --id Microsoft.VisualStudioCode ^
   --override "/SILENT /mergetasks=""!runcode,addcontextmenufiles,addcontextmenufolders""" ^
@@ -68,25 +82,128 @@ winget install -e --id Microsoft.VisualStudioCode ^
 
 for %%p in (%WINGET_PKGS%) do (
     call :InstallWinget %%p
+    echo.
 )
 
 echo.
-echo All installed!
+echo [*] Optional installations...
+echo.
+
+call :AskUser "Do you want to register Blur Explorer (requires admin)?"
+if %errorlevel% == 0 (
+    start "Blur Explorer Registration" "%~dp0..\libs\blur_explorer\register.cmd"
+) else (
+    echo [SKIP] Blur Explorer registration skipped
+)
+
+echo.
+
+call :AskUser "Do you want to install Steam?"
+if %errorlevel% == 0 (
+    call :CheckAndInstallSteam
+) else (
+    echo [SKIP] Steam installation skipped
+)
+
+echo.
 endlocal
 goto :EOF
 
-:: ==============================================================================
-:: FUNCTIONS
-:: ==============================================================================
+REM ==============================================================================
+REM FUNCTIONS
+REM ==============================================================================
 
+:IsScoopInstalled
+scoop list | find /i "%1" >nul 2>nul
+exit /b %errorlevel%
+goto :EOF
+
+:IsWingetInstalled
+winget list --exact --id %1 >nul 2>nul
+exit /b %errorlevel%
+goto :EOF
+
+REM Helper function to install Scoop packages
 :InstallScoop
-echo.
-echo [Scoop] Installing %1...
-call scoop install %1
+echo [Scoop] %1
+
+call :IsScoopInstalled %1
+if %errorlevel% equ 0 (
+    echo [OK] Already installed
+) else (
+    call :AskUser "Install %1?"
+    if %errorlevel% == 0 (
+        echo Installing...
+        call scoop install %1
+        if %errorlevel% equ 0 (
+            echo [OK] Installed
+        ) else (
+            echo [FAILED] Installation failed
+        )
+    ) else (
+        echo [SKIP]
+    )
+)
 goto :EOF
 
 :InstallWinget
-echo.
-echo [Winget] Installing %1...
-winget install -e --id %1 --accept-package-agreements --accept-source-agreements
+echo [Winget] %1
+
+call :IsWingetInstalled %1
+if %errorlevel% equ 0 (
+    echo [OK] Already installed
+) else (
+    call :AskUser "Install %1?"
+    if %errorlevel% == 0 (
+        echo Installing...
+        winget install -e --id %1 --accept-package-agreements --accept-source-agreements >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo [OK] Installed
+        ) else (
+            echo [FAILED] Installation failed
+        )
+    ) else (
+        echo [SKIP]
+    )
+)
+goto :EOF
+
+:AskUser
+echo %~1
+:ask_loop
+set /p choice="[y/n]: "
+if /i "%choice%"=="y" (
+    exit /b 0
+) else if /i "%choice%"=="n" (
+    exit /b 1
+) else (
+    echo [!] Please enter 'y' or 'n'.
+    goto ask_loop
+)
+goto :EOF
+
+:CheckAndInstallSteam
+echo [Steam] Checking if already installed...
+
+if exist "!ProgramFiles(x86)!\Steam\steam.exe" (
+    echo [OK] Already installed
+    exit /b 0
+)
+
+if exist "!ProgramFiles!\Steam\steam.exe" (
+    echo [OK] Already installed
+    exit /b 0
+)
+
+echo [*] Not found. Downloading Steam installer...
+powershell -Command "Invoke-WebRequest -Uri '%STEAM_URL%' -OutFile '%TEMP%\SteamSetup.exe'" >nul 2>&1
+
+if %errorlevel% equ 0 (
+    echo [OK] Starting Steam installation...
+    start "" "%TEMP%\SteamSetup.exe"
+    echo [!] Please complete the installation manually.
+) else (
+    echo [ERROR] Failed to download Steam installer.
+)
+exit /b 0
 goto :EOF

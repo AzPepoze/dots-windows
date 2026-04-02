@@ -42,3 +42,11 @@ if defined TARGET_TERMINAL_DIR (
 
 echo.
 echo Configuration loaded successfully.
+
+echo.
+echo Killing all AutoHotkey processes...
+taskkill /F /IM AutoHotkey.exe >nul 2>&1
+
+echo.
+echo Running startup script...
+call "%~dp0startup.cmd" runall
