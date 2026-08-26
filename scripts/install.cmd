@@ -98,6 +98,15 @@ if %errorlevel% == 0 (
 
 echo.
 
+call :AskUser "Do you want to add VS Code to context menu (files and folders)?"
+if %errorlevel% == 0 (
+    start "VS Code Context Menu" /wait "%~dp0..\utils\add_vscode_context_menu.cmd"
+) else (
+    echo [SKIP] VS Code context menu skipped
+)
+
+echo.
+
 call :AskUser "Do you want to install Steam?"
 if %errorlevel% == 0 (
     call :CheckAndInstallSteam
@@ -119,11 +128,12 @@ exit /b %errorlevel%
 goto :EOF
 
 :IsWingetInstalled
-winget list --exact --id %1 >nul 2>nul
+REM winget list returns 0 even when not found, so parse output for the id
+winget list --exact --id %1 --accept-source-agreements 2>nul | find /i "%1" >nul 2>&1
 exit /b %errorlevel%
 goto :EOF
 
-REM Helper function to install Scoop packages
+REM Helper function to install Scoop packages (auto-install if missing)
 :InstallScoop
 echo [Scoop] %1
 
@@ -131,17 +141,12 @@ call :IsScoopInstalled %1
 if %errorlevel% equ 0 (
     echo [OK] Already installed
 ) else (
-    call :AskUser "Install %1?"
-    if %errorlevel% == 0 (
-        echo Installing...
-        call scoop install %1
-        if %errorlevel% equ 0 (
-            echo [OK] Installed
-        ) else (
-            echo [FAILED] Installation failed
-        )
+    echo [*] Not installed. Installing automatically...
+    call scoop install %1
+    if !errorlevel! equ 0 (
+        echo [OK] Installed
     ) else (
-        echo [SKIP]
+        echo [FAILED] Installation failed for %1
     )
 )
 goto :EOF
@@ -153,17 +158,12 @@ call :IsWingetInstalled %1
 if %errorlevel% equ 0 (
     echo [OK] Already installed
 ) else (
-    call :AskUser "Install %1?"
-    if %errorlevel% == 0 (
-        echo Installing...
-        winget install -e --id %1 --accept-package-agreements --accept-source-agreements >nul 2>&1
-        if %errorlevel% equ 0 (
-            echo [OK] Installed
-        ) else (
-            echo [FAILED] Installation failed
-        )
+    echo [*] Not installed. Installing automatically...
+    winget install -e --id %1 --accept-package-agreements --accept-source-agreements
+    if !errorlevel! equ 0 (
+        echo [OK] Installed
     ) else (
-        echo [SKIP]
+        echo [FAILED] Installation failed for %1 - check output above
     )
 )
 goto :EOF

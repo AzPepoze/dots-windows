@@ -41,6 +41,13 @@ if defined TARGET_TERMINAL_DIR (
 )
 
 echo.
+echo #############################
+echo APPLYING WALLPAPER
+echo #############################
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0set-wallpaper.ps1"
+
+echo.
 echo Configuration loaded successfully.
 
 echo.
