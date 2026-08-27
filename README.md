@@ -1,6 +1,6 @@
 # Dots-Windows
 
-Personal Windows configuration files, package installer, and dotfile manager.
+My personal dotfiles for windows.
 
 ---
 
