@@ -1,3 +1,1 @@
-echo Pulling latest changes...
-git pull
-call scripts/load_config.cmd
+@powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0update.ps1" %*

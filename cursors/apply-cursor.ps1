@@ -1,46 +1,47 @@
+# ============================================================================
+#  cursors\apply-cursor.ps1 - Cursor Scheme Applicator
+# ============================================================================
+. "$PSScriptRoot\..\libs\tui\tui.ps1"
 $ErrorActionPreference = "Stop"
-$cursorsDir = $PSScriptRoot
 
-# Get list of cursor folders
+$cursorsDir = $PSScriptRoot
 $folders = Get-ChildItem -Path $cursorsDir -Directory
 
 if ($folders.Count -eq 0) {
-    Write-Host "No cursor folders found in $cursorsDir"
-    exit
+    Write-TuiErr "No cursor folders found in $cursorsDir"
+    Wait-TuiPause
+    exit 1
 }
 
-Write-Host "Available Cursor Schemes:"
-for ($i = 0; $i -lt $folders.Count; $i++) {
-    Write-Host "$($i + 1). $($folders[$i].Name)"
+$items = [System.Collections.ArrayList]@()
+foreach ($f in $folders) {
+    $items.Add([PSCustomObject]@{
+        Name = $f.Name
+        Description = "Cursor Scheme"
+        Folder = $f
+    }) | Out-Null
 }
 
-$choice = Read-Host "Select a cursor scheme to install (1-$($folders.Count))"
+Clear-Host
+$selectedItem = Invoke-TuiSingleSelect -Title "Select Cursor Scheme" -Items $items -Header "Cursor Schemes" -SubTitle "Pick a cursor pack to apply system-wide."
 
-try {
-    $selectedIndex = [int]$choice - 1
-    if ($selectedIndex -lt 0 -or $selectedIndex -ge $folders.Count) {
-        Write-Warning "Invalid selection."
-        exit
-    }
-} catch {
-    Write-Warning "Invalid input."
-    exit
+if ($null -eq $selectedItem) {
+    Write-TuiSkip "Selection cancelled."
+    exit 0
 }
 
-$selectedFolder = $folders[$selectedIndex]
+$selectedFolder = $selectedItem.Folder
 $targetDir = $selectedFolder.FullName
 $schemeName = $selectedFolder.Name
 
-Write-Host "Installing '$schemeName' from $targetDir..."
+Write-TuiInfo "Installing '$schemeName' from $targetDir..."
 
-# Function to find either .ani or .cur for a given role
 function Get-CursorFile {
     param([string]$roleName, [string]$fallback = "")
     $aniPath = Join-Path $targetDir "$roleName.ani"
     $curPath = Join-Path $targetDir "$roleName.cur"
     if (Test-Path $aniPath) { return $aniPath }
     if (Test-Path $curPath) { return $curPath }
-    
     if ($fallback) {
         $aniPath = Join-Path $targetDir "$fallback.ani"
         $curPath = Join-Path $targetDir "$fallback.cur"
@@ -50,29 +51,28 @@ function Get-CursorFile {
     return ""
 }
 
-$arrow       = Get-CursorFile "arrow" "pointer"
-$helpsel     = Get-CursorFile "helpsel" "help"
-$working     = Get-CursorFile "working" "appstarting"
-$busy        = Get-CursorFile "busy" "wait"
-$crosshair   = Get-CursorFile "cross" "crosshair"
-$ibeam       = Get-CursorFile "ibeam" "text"
-$nwpen       = Get-CursorFile "pen" "nwpen"
-$unavail     = Get-CursorFile "unavail" "no"
-$ns          = Get-CursorFile "ns" "sizens"
-$ew          = Get-CursorFile "ew" "sizewe"
-$nwse        = Get-CursorFile "nwse" "sizenwse"
-$nesw        = Get-CursorFile "nesw" "sizenesw"
-$move        = Get-CursorFile "move" "sizeall"
-$uparrow     = Get-CursorFile "up" "uparrow"
-$link        = Get-CursorFile "link" "hand"
+$arrow     = Get-CursorFile "arrow" "pointer"
+$helpsel   = Get-CursorFile "helpsel" "help"
+$working   = Get-CursorFile "working" "appstarting"
+$busy      = Get-CursorFile "busy" "wait"
+$crosshair = Get-CursorFile "cross" "crosshair"
+$ibeam     = Get-CursorFile "ibeam" "text"
+$nwpen     = Get-CursorFile "pen" "nwpen"
+$unavail   = Get-CursorFile "unavail" "no"
+$ns        = Get-CursorFile "ns" "sizens"
+$ew        = Get-CursorFile "ew" "sizewe"
+$nwse      = Get-CursorFile "nwse" "sizenwse"
+$nesw      = Get-CursorFile "nesw" "sizenesw"
+$move      = Get-CursorFile "move" "sizeall"
+$uparrow   = Get-CursorFile "up" "uparrow"
+$link      = Get-CursorFile "link" "hand"
 
 if (-not $arrow) {
-    Write-Warning "Could not find a main 'arrow' cursor (arrow.ani or arrow.cur) in $targetDir."
+    Write-TuiErr "Could not find main 'arrow' cursor in $targetDir"
     Start-Sleep -Seconds 2
-    exit
+    exit 1
 }
 
-# Registry paths
 $cursorsPath = "HKCU:\Control Panel\Cursors"
 $schemesPath = "$cursorsPath\Schemes"
 
@@ -101,21 +101,18 @@ Set-ItemProperty -Path $cursorsPath -Name "NWPen" -Value $nwpen
 
 Set-ItemProperty -Path $cursorsPath -Name "(Default)" -Value $schemeName
 
-Write-Host "Refreshing system cursors..."
+Write-TuiInfo "Broadcasting cursor update to system..."
 
-# Refresh cursors using SystemParametersInfo
 $code = @"
 using System.Runtime.InteropServices;
-public class Win32 {
+public class Win32Cursor {
     [DllImport("user32.dll", EntryPoint = "SystemParametersInfo")]
     public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, uint pvParam, uint fWinIni);
 }
 "@
-try {
-    Add-Type -TypeDefinition $code -ErrorAction Ignore
-} catch {}
+try { Add-Type -TypeDefinition $code -ErrorAction SilentlyContinue } catch {}
+[Win32Cursor]::SystemParametersInfo(0x0057, 0, 0, 0x01 -bor 0x02) | Out-Null
 
-[Win32]::SystemParametersInfo(0x0057, 0, 0, 0x01 -bor 0x02) | Out-Null
-
-Write-Host "Cursor scheme '$schemeName' applied successfully!"
-Start-Sleep -Seconds 2
+Write-TuiOk "Cursor scheme '$schemeName' applied!"
+Write-TuiDim "  Move your mouse to view the newly active scheme."
+Start-Sleep -Seconds 1
