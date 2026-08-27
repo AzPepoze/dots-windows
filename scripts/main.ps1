@@ -1,7 +1,7 @@
 # ============================================================================
 #  main.ps1 - Main Interactive Menu for Dots-Windows
 # ============================================================================
-. "$PSScriptRoot\libs\tui\tui.ps1"
+. "$PSScriptRoot\..\libs\tui\tui.ps1"
 
 function Show-MainMenu {
     while ($true) {
@@ -29,7 +29,7 @@ function Show-MainMenu {
                 Write-TuiSeparator
                 git pull
                 Write-Host ""
-                & "$PSScriptRoot\scripts\run.ps1"
+                & "$PSScriptRoot\run.ps1"
                 Wait-TuiPause "Press any key to return to the main menu..."
             }
             "update" {
@@ -39,7 +39,7 @@ function Show-MainMenu {
             }
             "cursor" {
                 Clear-Host
-                & "$PSScriptRoot\cursors\apply-cursor.ps1"
+                & "$PSScriptRoot\..\cursors\apply-cursor.ps1"
                 Wait-TuiPause "Press any key to return to the main menu..."
             }
             "ctt" {

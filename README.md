@@ -9,7 +9,7 @@ Personal Windows configuration files, package installer, and dotfile manager.
 Open **PowerShell** and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/AzPepoze/dots-windows/main/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/AzPepoze/dots-windows/main/scripts/bootstrap.ps1 | iex
 ```
 
 ### What this does automatically:
@@ -39,7 +39,7 @@ If you prefer to clone manually:
      - **From PowerShell / Windows Terminal:**
           ```powershell
           cd C:\dots-windows
-          .\main.ps1
+          .\scripts\main.ps1
           ```
      - **From Command Prompt (CMD):**
           ```cmd
@@ -58,7 +58,7 @@ For any future maintenance, navigate to `C:\dots-windows` and run:
 - **PowerShell:**
      ```powershell
      cd C:\dots-windows
-     .\update.ps1
+     .\scripts\update.ps1
      ```
 - **Command Prompt (CMD):**
      ```cmd
@@ -72,11 +72,8 @@ For any future maintenance, navigate to `C:\dots-windows` and run:
 
 ```
 C:\dots-windows/
-├── bootstrap.ps1                     # Remote 1-liner installer (irm ... | iex)
-├── main.ps1                          # Interactive Main Menu
-├── main.cmd                          # 1-line wrapper -> main.ps1
-├── update.ps1                        # Git pull + config reload
-├── update.cmd                        # 1-line wrapper -> update.ps1
+├── main.cmd                          # 1-line wrapper -> scripts/main.ps1
+├── update.cmd                        # 1-line wrapper -> scripts/update.ps1
 ├── libs/
 │   ├── tui/
 │   │   └── tui.ps1                   # Shared TUI styling & interactive menus
@@ -84,6 +81,9 @@ C:\dots-windows/
 │       ├── register.ps1              # Register ExplorerBlurMica DLL
 │       └── uninstall.ps1             # Unregister ExplorerBlurMica DLL
 ├── scripts/
+│   ├── bootstrap.ps1                 # Remote 1-liner installer (irm ... | iex)
+│   ├── main.ps1                      # Interactive Main Menu
+│   ├── update.ps1                    # Git pull + config reload
 │   ├── run.ps1                       # Master setup orchestrator
 │   ├── install.ps1                   # Interactive checkbox package installer
 │   ├── load-config.ps1               # Syncs dotfiles, Terminal settings, wallpaper

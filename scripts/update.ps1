@@ -1,7 +1,7 @@
 # ============================================================================
 #  update.ps1 - Git Pull & Dotfile Configuration Reload
 # ============================================================================
-. "$PSScriptRoot\libs\tui\tui.ps1"
+. "$PSScriptRoot\..\libs\tui\tui.ps1"
 $ErrorActionPreference = "Continue"
 
 Write-TuiHeader "Update Dots"
@@ -19,7 +19,7 @@ if ($LASTEXITCODE -eq 0) {
 
 Write-Host ""
 Write-TuiInfo "Reloading dotfile configurations..."
-& "$PSScriptRoot\scripts\load-config.ps1"
+& "$PSScriptRoot\load-config.ps1"
 
 Write-Host ""
 Write-TuiOk "Update completed successfully!"

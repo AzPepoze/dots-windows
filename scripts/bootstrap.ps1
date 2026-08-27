@@ -2,7 +2,7 @@
 #  bootstrap.ps1 - Zero-Touch Remote Installer for Dots-Windows
 #
 #  Usage:
-#    irm https://raw.githubusercontent.com/AzPepoze/dots-windows/main/bootstrap.ps1 | iex
+#    irm https://raw.githubusercontent.com/AzPepoze/dots-windows/main/scripts/bootstrap.ps1 | iex
 # ============================================================================
 
 $ErrorActionPreference = "Continue"
@@ -122,4 +122,4 @@ Write-Host "${C_GREEN}[OK]${C_RESET} Launching Main Menu..."
 Start-Sleep -Seconds 1
 
 Set-Location $targetDir
-& "$targetDir\main.ps1"
+& "$targetDir\scripts\main.ps1"
