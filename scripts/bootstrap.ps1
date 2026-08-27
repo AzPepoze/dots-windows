@@ -74,22 +74,22 @@ try {
 } catch {}
 
 # ANSI Colors
-$ESC = [char]27
-$C_RESET   = "$ESC[0m"
-$C_BOLD    = "$ESC[1m"
-$C_DIM     = "$ESC[38;2;185;185;200m"
-$C_WHITE   = "$ESC[38;2;248;248;255m"
-$C_RED     = "$ESC[38;2;255;154;162m"
-$C_GREEN   = "$ESC[38;2;181;234;215m"
-$C_PINK    = "$ESC[38;2;255;214;232m"
-$C_SKY     = "$ESC[38;2;160;196;255m"
-$C_LAVENDER= "$ESC[38;2;216;207;245m"
+$E = [char]27
+$C_RESET   = "$E" + "[0m"
+$C_BOLD    = "$E" + "[1m"
+$C_DIM     = "$E" + "[38;2;185;185;200m"
+$C_WHITE   = "$E" + "[38;2;248;248;255m"
+$C_RED     = "$E" + "[38;2;255;154;162m"
+$C_GREEN   = "$E" + "[38;2;181;234;215m"
+$C_PINK    = "$E" + "[38;2;255;214;232m"
+$C_SKY     = "$E" + "[38;2;160;196;255m"
+$C_LAVENDER= "$E" + "[38;2;216;207;245m"
 
 Clear-Host
 Write-Host ""
-Write-Host "${C_LAVENDER}+==========================================================+${C_RESET}"
-Write-Host "${C_LAVENDER}|${C_RESET}  ${C_BOLD}${C_PINK}Dots-Windows -- Bootstrap Installer${C_RESET}"
-Write-Host "${C_LAVENDER}+==========================================================+${C_RESET}"
+Write-Host "$C_LAVENDER+==========================================================+$C_RESET"
+Write-Host "$C_LAVENDER|$C_RESET  $C_BOLD$C_PINK" + "Dots-Windows -- Bootstrap Installer$C_RESET"
+Write-Host "$C_LAVENDER+==========================================================+$C_RESET"
 Write-Host ""
 
 # ==============================================================================

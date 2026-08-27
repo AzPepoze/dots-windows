@@ -1,5 +1,5 @@
 # ============================================================================
-#  main.ps1 - Main Interactive Menu for Dots-Windows
+#  scripts\main.ps1 - Main Interactive Menu for Dots-Windows
 # ============================================================================
 . "$PSScriptRoot\..\libs\tui\tui.ps1"
 
@@ -25,7 +25,7 @@ function Show-MainMenu {
             "install" {
                 Clear-Host
                 Write-TuiHeader "Install Dots"
-                Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}Pulling latest changes...${script:C_RESET}"
+                Write-TuiInfo "Pulling latest changes..."
                 Write-TuiSeparator
                 git pull
                 Write-Host ""
@@ -54,16 +54,16 @@ function Show-MainMenu {
             "help" {
                 Clear-Host
                 Write-TuiHeader "Help & Documentation -- Dots-Windows"
-                Write-Host "${script:C_BOLD}${script:C_PINK}Navigation:${script:C_RESET}"
-                Write-Host "  ${script:C_DIM}Use the [Up/Down] arrow keys to navigate and press [Enter] to select.${script:C_RESET}"
-                Write-Host "  ${script:C_DIM}In multi-select menus, press [Space] to check/uncheck and [A] to toggle all.${script:C_RESET}"
+                Write-Host "$script:C_BOLD$script:C_PINK Navigation:$script:C_RESET"
+                Write-Host "  $script:C_DIM Use the [Up/Down] arrow keys to navigate and press [Enter] to select.$script:C_RESET"
+                Write-Host "  $script:C_DIM In multi-select menus, press [Space] to check/uncheck and [A] to toggle all.$script:C_RESET"
                 Write-Host ""
-                Write-Host "${script:C_BOLD}${script:C_PINK}Structure:${script:C_RESET}"
-                Write-Host "  ${script:C_WHITE}dots/user${script:C_RESET}     ${script:C_DIM}-> Copied to $env:USERPROFILE (Windows Terminal, PowerShell profile)${script:C_RESET}"
-                Write-Host "  ${script:C_WHITE}libs/tui/${script:C_RESET}     ${script:C_DIM}-> Shared TUI formatting and selection menus${script:C_RESET}"
-                Write-Host "  ${script:C_WHITE}scripts/${script:C_RESET}      ${script:C_DIM}-> Pure operational logic (install, config sync, startup runner)${script:C_RESET}"
-                Write-Host "  ${script:C_WHITE}cursors/${script:C_RESET}      ${script:C_DIM}-> Custom cursor schemes (keqing, etc.)${script:C_RESET}"
-                Write-Host "  ${script:C_WHITE}startup/${script:C_RESET}      ${script:C_DIM}-> AutoHotkey scripts and startup task shortcuts${script:C_RESET}"
+                Write-Host "$script:C_BOLD$script:C_PINK Structure:$script:C_RESET"
+                Write-Host "  $script:C_WHITE dots/user$script:C_RESET     $script:C_DIM -> Copied to $env:USERPROFILE (Windows Terminal, PowerShell profile)$script:C_RESET"
+                Write-Host "  $script:C_WHITE libs/tui/$script:C_RESET     $script:C_DIM -> Shared TUI formatting and selection menus$script:C_RESET"
+                Write-Host "  $script:C_WHITE scripts/$script:C_RESET      $script:C_DIM -> Pure operational logic (install, config sync, startup runner)$script:C_RESET"
+                Write-Host "  $script:C_WHITE cursors/$script:C_RESET      $script:C_DIM -> Custom cursor schemes (keqing, etc.)$script:C_RESET"
+                Write-Host "  $script:C_WHITE startup/$script:C_RESET      $script:C_DIM -> AutoHotkey scripts and startup task shortcuts$script:C_RESET"
                 Write-Host ""
                 Wait-TuiPause "Press any key to return to the main menu..."
             }

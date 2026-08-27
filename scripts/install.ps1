@@ -60,7 +60,7 @@ if ($hasCurl) {
 Write-TuiSection "Scoop Buckets"
 $buckets = @("extras", "games", "nerd-fonts")
 foreach ($b in $buckets) {
-    Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}Bucket '$b'${script:C_RESET} ${script:C_DIM}-- checking...${script:C_RESET}"
+    Write-TuiInfo "Bucket '$b' -- checking..."
     $bucketList = scoop bucket list 2>$null
     if ($bucketList -match "\b$b\b") {
         Write-TuiOk "Bucket '$b' is ready (skipped)"
@@ -140,7 +140,7 @@ foreach ($pkg in $selected) {
     switch ($pkg.Type) {
         "scoop" {
             Write-Host ""
-            Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}[Scoop] $($pkg.Name)${script:C_RESET} ${script:C_DIM}-- checking status...${script:C_RESET}"
+            Write-TuiInfo "[Scoop] $($pkg.Name) -- checking status..."
             $installed = scoop list 2>$null | Select-String -Pattern "^$([regex]::Escape($pkg.Id))\b" -SimpleMatch
             if ($installed) {
                 Write-TuiOk "[Scoop] $($pkg.Name) is already installed (skipped)"
@@ -156,7 +156,7 @@ foreach ($pkg in $selected) {
         }
         "vscode" {
             Write-Host ""
-            Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}[VS Code] Visual Studio Code${script:C_RESET} ${script:C_DIM}-- checking install path...${script:C_RESET}"
+            Write-TuiInfo "[VS Code] Visual Studio Code -- checking install path..."
             $codePaths = @(
                 "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe",
                 "$env:ProgramFiles\Microsoft VS Code\Code.exe",
@@ -186,7 +186,7 @@ foreach ($pkg in $selected) {
         }
         "steam" {
             Write-Host ""
-            Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}[Steam] Steam Client${script:C_RESET} ${script:C_DIM}-- checking install path...${script:C_RESET}"
+            Write-TuiInfo "[Steam] Steam Client -- checking install path..."
             $steamPaths = @(
                 "${env:ProgramFiles(x86)}\Steam\steam.exe",
                 "$env:ProgramFiles\Steam\steam.exe"
@@ -214,7 +214,7 @@ foreach ($pkg in $selected) {
         }
         "winget" {
             Write-Host ""
-            Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}[Winget] $($pkg.Name)${script:C_RESET} ${script:C_DIM}-- checking status...${script:C_RESET}"
+            Write-TuiInfo "[Winget] $($pkg.Name) -- checking status..."
             $listOutput = winget list --exact --id $pkg.Id --accept-source-agreements --disable-interactivity 2>$null
             if ($listOutput -match [regex]::Escape($pkg.Id)) {
                 Write-TuiOk "[Winget] $($pkg.Name) is already installed (skipped)"

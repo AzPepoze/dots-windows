@@ -31,7 +31,7 @@ if ($Mode -match '(?i)run') {
     Write-TuiOk "Found startup folder"
     Write-TuiSeparator
 
-    Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} Terminating existing AutoHotkey processes..."
+    Write-TuiInfo "Terminating existing AutoHotkey processes..."
     taskkill /F /IM AutoHotkey*.exe 2>$null | Out-Null
     Start-Sleep -Milliseconds 500
 
@@ -41,7 +41,7 @@ if ($Mode -match '(?i)run') {
         Write-TuiWarn "No .ahk or .lnk files found in '$startupDir'"
     } else {
         foreach ($t in $tasks) {
-            Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} ${script:C_WHITE}$($t.Name)${script:C_RESET} ${script:C_DIM}--> launching${script:C_RESET}"
+            Write-TuiInfo "$($t.Name) --> launching"
             Start-Process -FilePath $t.FullName -WorkingDirectory $startupDir
             Start-Sleep -Milliseconds 250
         }

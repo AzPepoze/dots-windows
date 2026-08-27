@@ -1,12 +1,6 @@
 # ============================================================================
 #  libs\tui\tui.ps1 - Unified TUI Library for PowerShell in dots-windows
-#
-#  Usage:
-#    . "$PSScriptRoot\..\libs\tui\tui.ps1"
 # ============================================================================
-
-if ($global:_TUI_PS_LOADED) { return }
-$global:_TUI_PS_LOADED = $true
 
 # Enable Windows Virtual Terminal Processing
 if (-not ('Win32VT' -as [type])) {
@@ -71,7 +65,7 @@ try {
 } catch {}
 
 # Generate ESC character (char 27)
-$ESC = [char]27
+$E = [char]27
 
 if ($env:NO_COLOR) {
     $script:C_RESET   = ""
@@ -93,25 +87,25 @@ if ($env:NO_COLOR) {
     $script:C_LILAC   = ""
     $script:C_LEMON   = ""
 } else {
-    # 24-bit Pastel ANSI colors matching tui.cmd
-    $script:C_RESET   = "$ESC[0m"
-    $script:C_BOLD    = "$ESC[1m"
-    $script:C_DIM     = "$ESC[38;2;185;185;200m"
-    $script:C_WHITE   = "$ESC[38;2;248;248;255m"
-    $script:C_RED     = "$ESC[38;2;255;154;162m"
-    $script:C_GREEN   = "$ESC[38;2;181;234;215m"
-    $script:C_YELLOW  = "$ESC[38;2;255;245;186m"
-    $script:C_BLUE    = "$ESC[38;2;160;196;255m"
-    $script:C_MAGENTA = "$ESC[38;2;255;175;210m"
-    $script:C_CYAN    = "$ESC[38;2;155;246;255m"
-    $script:C_PINK    = "$ESC[38;2;255;214;232m"
-    $script:C_PURPLE  = "$ESC[38;2;195;177;225m"
-    $script:C_PEACH   = "$ESC[38;2;255;223;186m"
-    $script:C_MINT    = "$ESC[38;2;202;255;191m"
-    $script:C_SKY     = "$ESC[38;2;160;196;255m"
-    $script:C_LAVENDER= "$ESC[38;2;216;207;245m"
-    $script:C_LILAC   = "$ESC[38;2;224;187;228m"
-    $script:C_LEMON   = "$ESC[38;2;255;245;186m"
+    # 24-bit Pastel ANSI colors
+    $script:C_RESET   = "$E" + "[0m"
+    $script:C_BOLD    = "$E" + "[1m"
+    $script:C_DIM     = "$E" + "[38;2;185;185;200m"
+    $script:C_WHITE   = "$E" + "[38;2;248;248;255m"
+    $script:C_RED     = "$E" + "[38;2;255;154;162m"
+    $script:C_GREEN   = "$E" + "[38;2;181;234;215m"
+    $script:C_YELLOW  = "$E" + "[38;2;255;245;186m"
+    $script:C_BLUE    = "$E" + "[38;2;160;196;255m"
+    $script:C_MAGENTA = "$E" + "[38;2;255;175;210m"
+    $script:C_CYAN    = "$E" + "[38;2;155;246;255m"
+    $script:C_PINK    = "$E" + "[38;2;255;214;232m"
+    $script:C_PURPLE  = "$E" + "[38;2;195;177;225m"
+    $script:C_PEACH   = "$E" + "[38;2;255;223;186m"
+    $script:C_MINT    = "$E" + "[38;2;202;255;191m"
+    $script:C_SKY     = "$E" + "[38;2;160;196;255m"
+    $script:C_LAVENDER= "$E" + "[38;2;216;207;245m"
+    $script:C_LILAC   = "$E" + "[38;2;224;187;228m"
+    $script:C_LEMON   = "$E" + "[38;2;255;245;186m"
 }
 
 $script:S_OK   = "[OK]"
@@ -122,36 +116,39 @@ $script:S_SKIP = "[SKIP]"
 $script:S_ARROW= ">>"
 
 function Write-TuiHeader {
-    param([string]$Title)
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Title)
+    $text = ($Title -join ' ')
     Write-Host ""
-    Write-Host "${script:C_LAVENDER}+==========================================================+${script:C_RESET}"
-    Write-Host "${script:C_LAVENDER}|${script:C_RESET}  ${script:C_BOLD}${script:C_PINK}$Title${script:C_RESET}"
-    Write-Host "${script:C_LAVENDER}+==========================================================+${script:C_RESET}"
+    Write-Host "$script:C_LAVENDER+==========================================================+$script:C_RESET"
+    Write-Host "$script:C_LAVENDER|$script:C_RESET  $script:C_BOLD$script:C_PINK$text$script:C_RESET"
+    Write-Host "$script:C_LAVENDER+==========================================================+$script:C_RESET"
     Write-Host ""
 }
 
 function Write-TuiSection {
-    param([string]$Title)
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Title)
+    $text = ($Title -join ' ')
     Write-Host ""
-    Write-Host "${script:C_LAVENDER}-- ${script:C_PINK}$Title ${script:C_DIM}--------------------------------------------${script:C_RESET}"
+    Write-Host "$script:C_LAVENDER-- $script:C_PINK$text $script:C_DIM--------------------------------------------$script:C_RESET"
     Write-Host ""
 }
 
 function Write-TuiSeparator {
-    Write-Host "${script:C_DIM}------------------------------------------------------------${script:C_RESET}"
+    Write-Host "$script:C_DIM------------------------------------------------------------$script:C_RESET"
 }
 
-function Write-TuiOk   { param([string]$Msg) Write-Host "${script:C_MINT}$($script:S_OK)${script:C_RESET} $Msg" }
-function Write-TuiErr  { param([string]$Msg) Write-Host "${script:C_RED}$($script:S_ERR)${script:C_RESET} $Msg" }
-function Write-TuiWarn { param([string]$Msg) Write-Host "${script:C_LEMON}$($script:S_WARN)${script:C_RESET} $Msg" }
-function Write-TuiInfo { param([string]$Msg) Write-Host "${script:C_SKY}$($script:S_INFO)${script:C_RESET} $Msg" }
-function Write-TuiSkip { param([string]$Msg) Write-Host "${script:C_DIM}$($script:S_SKIP)${script:C_RESET} $Msg" }
-function Write-TuiDim  { param([string]$Msg) Write-Host "${script:C_DIM}$Msg${script:C_RESET}" }
+function Write-TuiOk   { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_MINT$script:S_OK$script:C_RESET $($Msg -join ' ')" }
+function Write-TuiErr  { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_RED$script:S_ERR$script:C_RESET $($Msg -join ' ')" }
+function Write-TuiWarn { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_LEMON$script:S_WARN$script:C_RESET $($Msg -join ' ')" }
+function Write-TuiInfo { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_SKY$script:S_INFO$script:C_RESET $($Msg -join ' ')" }
+function Write-TuiSkip { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_DIM$script:S_SKIP$script:C_RESET $($Msg -join ' ')" }
+function Write-TuiDim  { param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg) Write-Host "$script:C_DIM$($Msg -join ' ')$script:C_RESET" }
 
 function Read-TuiConfirm {
-    param([string]$Question)
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Question)
+    $q = ($Question -join ' ')
     Write-Host ""
-    Write-Host "${script:C_PEACH}$Question${script:C_RESET}"
+    Write-Host "$script:C_PEACH$q$script:C_RESET"
     Write-Host -NoNewline "  [Y]es / [N]o : "
     
     try {
@@ -171,9 +168,10 @@ function Read-TuiConfirm {
 }
 
 function Wait-TuiPause {
-    param([string]$Msg = "Press any key to return...")
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Msg)
+    $m = if ($Msg) { ($Msg -join ' ') } else { "Press any key to return..." }
     Write-Host ""
-    Write-Host "${script:C_DIM}  $Msg${script:C_RESET}"
+    Write-Host "$script:C_DIM  $m$script:C_RESET"
     try {
         [Console]::ReadKey($true) | Out-Null
     } catch {
