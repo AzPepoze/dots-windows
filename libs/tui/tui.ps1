@@ -8,26 +8,47 @@
 if ($global:_TUI_PS_LOADED) { return }
 $global:_TUI_PS_LOADED = $true
 
-# Enable Windows Virtual Terminal Processing in classic conhost
-if (-not ('Win32Console' -as [type])) {
+# Enable Windows Virtual Terminal Processing
+if (-not ('Win32VT' -as [type])) {
     $win32ConsoleCode = @"
 using System;
 using System.Runtime.InteropServices;
-public class Win32Console {
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr GetStdHandle(int nStdHandle);
+
+public class Win32VT {
+    private const int STD_OUTPUT_HANDLE = -11;
+    private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+    private static extern IntPtr GetStdHandle(int nStdHandle);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+    private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr CreateFile(
+        string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
 
     public static void EnableVT() {
         try {
-            IntPtr hOut = GetStdHandle(-11);
-            if (GetConsoleMode(hOut, out uint mode)) {
-                SetConsoleMode(hOut, mode | 0x0004 | 0x0008);
+            uint mode = 0;
+            IntPtr hConOut = CreateFile("CONOUT$", 0x40000000 | 0x80000000, 2, IntPtr.Zero, 3, 0, IntPtr.Zero);
+            if (hConOut != (IntPtr)(-1)) {
+                if (GetConsoleMode(hConOut, out mode)) {
+                    SetConsoleMode(hConOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+                }
+            }
+            IntPtr hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (GetConsoleMode(hOut, out mode)) {
+                SetConsoleMode(hOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
             }
         } catch {}
     }
@@ -38,9 +59,16 @@ public class Win32Console {
     } catch {}
 }
 
-if ('Win32Console' -as [type]) {
-    try { [Win32Console]::EnableVT() } catch {}
+if ('Win32VT' -as [type]) {
+    try { [Win32VT]::EnableVT() } catch {}
 }
+
+try {
+    if (-not (Test-Path "HKCU:\Console")) {
+        New-Item -Path "HKCU:\Console" -Force | Out-Null
+    }
+    Set-ItemProperty -Path "HKCU:\Console" -Name "VirtualTerminalLevel" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+} catch {}
 
 # Generate ESC character (char 27)
 $ESC = [char]27
@@ -180,34 +208,30 @@ function Invoke-TuiMultiSelect {
         $cursorIndex++
     }
 
-    Clear-Host
     try {
-        [Console]::Write("$ESC[2J$ESC[H")
-        [Console]::SetCursorPosition(0, 0)
         [Console]::CursorVisible = $false
     } catch {}
 
     try {
         function Render-SelectionMenu {
-            try { [Console]::SetCursorPosition(0, 0) } catch {}
+            Clear-Host
             $sb = [System.Text.StringBuilder]::new()
-            [void]$sb.Append("$ESC[H")
 
             if ($Header) {
                 [void]$sb.AppendLine("")
-                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("${script:C_LAVENDER}|${script:C_RESET}  ${script:C_BOLD}${script:C_PINK}$Header${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("$ESC[K")
+                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}")
+                [void]$sb.AppendLine("${script:C_LAVENDER}|${script:C_RESET}  ${script:C_BOLD}${script:C_PINK}$Header${script:C_RESET}")
+                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}")
+                [void]$sb.AppendLine("")
             }
 
-            [void]$sb.AppendLine("${script:C_LAVENDER}-- ${script:C_PINK}$Title ${script:C_DIM}--------------------------------------------${script:C_RESET}$ESC[K")
-            [void]$sb.AppendLine("$ESC[K")
+            [void]$sb.AppendLine("${script:C_LAVENDER}-- ${script:C_PINK}$Title ${script:C_DIM}--------------------------------------------${script:C_RESET}")
+            [void]$sb.AppendLine("")
 
             for ($i = 0; $i -lt $total; $i++) {
                 $it = $Items[$i]
                 if ($it.IsHeader) {
-                    [void]$sb.AppendLine("  ${script:C_BOLD}${script:C_PEACH}[ $($it.Name) ]${script:C_RESET}$ESC[K")
+                    [void]$sb.AppendLine("  ${script:C_BOLD}${script:C_PEACH}[ $($it.Name) ]${script:C_RESET}")
                 } else {
                     $isCurrent = ($i -eq $cursorIndex)
                     $chk = if ($it.Selected) { "${script:C_MINT}[X]${script:C_RESET}" } else { "${script:C_DIM}[ ]${script:C_RESET}" }
@@ -216,16 +240,15 @@ function Invoke-TuiMultiSelect {
                     $categoryStyle = "${script:C_DIM}"
 
                     $line = "$pointer$chk $nameStyle$($it.Name)${script:C_RESET} $categoryStyle($($it.Category))${script:C_RESET}"
-                    [void]$sb.AppendLine($line + "$ESC[K")
+                    [void]$sb.AppendLine($line)
                 }
             }
 
-            [void]$sb.AppendLine("$ESC[K")
-            [void]$sb.AppendLine("${script:C_DIM}------------------------------------------------------------${script:C_RESET}$ESC[K")
-            [void]$sb.AppendLine("${script:C_DIM}  [Up/Down] Move   [Space] Check/Uncheck   [A] Toggle All   [Enter] Proceed   [Q/Esc] Cancel${script:C_RESET}$ESC[K")
-            [void]$sb.Append("$ESC[J")
+            [void]$sb.AppendLine("")
+            [void]$sb.AppendLine("${script:C_DIM}------------------------------------------------------------${script:C_RESET}")
+            [void]$sb.AppendLine("${script:C_DIM}  [Up/Down] Move   [Space] Check/Uncheck   [A] Toggle All   [Enter] Proceed   [Q/Esc] Cancel${script:C_RESET}")
 
-            [Console]::Write($sb.ToString())
+            Write-Host -NoNewline $sb.ToString()
         }
 
         Render-SelectionMenu
@@ -300,33 +323,29 @@ function Invoke-TuiSingleSelect {
     $cursorIndex = 0
     $total = $Items.Count
 
-    Clear-Host
     try {
-        [Console]::Write("$ESC[2J$ESC[H")
-        [Console]::SetCursorPosition(0, 0)
         [Console]::CursorVisible = $false
     } catch {}
 
     try {
         function Render-SingleMenu {
-            try { [Console]::SetCursorPosition(0, 0) } catch {}
+            Clear-Host
             $sb = [System.Text.StringBuilder]::new()
-            [void]$sb.Append("$ESC[H")
 
             if ($Header) {
                 [void]$sb.AppendLine("")
-                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("${script:C_LAVENDER}|${script:C_RESET}  ${script:C_BOLD}${script:C_PINK}$Header${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("$ESC[K")
+                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}")
+                [void]$sb.AppendLine("${script:C_LAVENDER}|${script:C_RESET}  ${script:C_BOLD}${script:C_PINK}$Header${script:C_RESET}")
+                [void]$sb.AppendLine("${script:C_LAVENDER}+==========================================================+${script:C_RESET}")
+                [void]$sb.AppendLine("")
             }
             if ($SubTitle) {
-                [void]$sb.AppendLine("${script:C_DIM}  $SubTitle${script:C_RESET}$ESC[K")
-                [void]$sb.AppendLine("$ESC[K")
+                [void]$sb.AppendLine("${script:C_DIM}  $SubTitle${script:C_RESET}")
+                [void]$sb.AppendLine("")
             }
 
-            [void]$sb.AppendLine("${script:C_LAVENDER}-- ${script:C_PINK}$Title ${script:C_DIM}--------------------------------------------${script:C_RESET}$ESC[K")
-            [void]$sb.AppendLine("$ESC[K")
+            [void]$sb.AppendLine("${script:C_LAVENDER}-- ${script:C_PINK}$Title ${script:C_DIM}--------------------------------------------${script:C_RESET}")
+            [void]$sb.AppendLine("")
 
             for ($i = 0; $i -lt $total; $i++) {
                 $it = $Items[$i]
@@ -337,15 +356,14 @@ function Invoke-TuiSingleSelect {
                 $desc = if ($it.Description) { " $descStyle($($it.Description))${script:C_RESET}" } else { "" }
 
                 $line = "$pointer$nameStyle$($it.Name)${script:C_RESET}$desc"
-                [void]$sb.AppendLine($line + "$ESC[K")
+                [void]$sb.AppendLine($line)
             }
 
-            [void]$sb.AppendLine("$ESC[K")
-            [void]$sb.AppendLine("${script:C_DIM}------------------------------------------------------------${script:C_RESET}$ESC[K")
-            [void]$sb.AppendLine("${script:C_DIM}  [Up/Down] Move   [Enter] Select   [Q/Esc] Cancel${script:C_RESET}$ESC[K")
-            [void]$sb.Append("$ESC[J")
+            [void]$sb.AppendLine("")
+            [void]$sb.AppendLine("${script:C_DIM}------------------------------------------------------------${script:C_RESET}")
+            [void]$sb.AppendLine("${script:C_DIM}  [Up/Down] Move   [Enter] Select   [Q/Esc] Cancel${script:C_RESET}")
 
-            [Console]::Write($sb.ToString())
+            Write-Host -NoNewline $sb.ToString()
         }
 
         Render-SingleMenu

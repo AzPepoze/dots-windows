@@ -7,9 +7,70 @@
 
 $ErrorActionPreference = "Continue"
 
-# 1. Ensure Execution Policy allows running scripts in this process
+# 1. Ensure Execution Policy & Virtual Terminal Processing
 try {
     Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force -ErrorAction SilentlyContinue
+} catch {}
+
+if (-not ('Win32VT' -as [type])) {
+    $vtCode = @"
+using System;
+using System.Runtime.InteropServices;
+
+public class Win32VT {
+    private const int STD_OUTPUT_HANDLE = -11;
+    private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr GetStdHandle(int nStdHandle);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr CreateFile(
+        string lpFileName,
+        uint dwDesiredAccess,
+        uint dwShareMode,
+        IntPtr lpSecurityAttributes,
+        uint dwCreationDisposition,
+        uint dwFlagsAndAttributes,
+        IntPtr hTemplateFile);
+
+    public static void EnableVT() {
+        try {
+            uint mode = 0;
+            IntPtr hConOut = CreateFile("CONOUT$", 0x40000000 | 0x80000000, 2, IntPtr.Zero, 3, 0, IntPtr.Zero);
+            if (hConOut != (IntPtr)(-1)) {
+                if (GetConsoleMode(hConOut, out mode)) {
+                    SetConsoleMode(hConOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+                }
+            }
+            IntPtr hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (GetConsoleMode(hOut, out mode)) {
+                SetConsoleMode(hOut, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        } catch {}
+    }
+}
+"@
+    try {
+        Add-Type -TypeDefinition $vtCode -ErrorAction SilentlyContinue
+    } catch {}
+}
+
+if ('Win32VT' -as [type]) {
+    try { [Win32VT]::EnableVT() } catch {}
+}
+
+try {
+    if (-not (Test-Path "HKCU:\Console")) {
+        New-Item -Path "HKCU:\Console" -Force | Out-Null
+    }
+    Set-ItemProperty -Path "HKCU:\Console" -Name "VirtualTerminalLevel" -Value 1 -Type DWord -ErrorAction SilentlyContinue
 } catch {}
 
 # ANSI Colors
