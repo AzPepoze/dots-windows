@@ -88,6 +88,7 @@ C:\dots-windows/
 │   ├── install.ps1                   # Interactive checkbox package installer
 │   ├── load-config.ps1               # Syncs dotfiles, Terminal settings, wallpaper
 │   ├── startup.ps1                   # Startup tasks & logon scheduled task
+│   ├── sync-time.ps1                 # Dual-boot clock fix + automatic time sync
 │   └── set-wallpaper.ps1             # Wallpaper applicator (Win32 API)
 ├── utils/
 │   └── add-vscode-context-menu.ps1   # VS Code context menu integration

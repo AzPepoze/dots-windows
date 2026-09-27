@@ -3,15 +3,27 @@
 # ============================================================================
 . "$PSScriptRoot\..\libs\tui\tui.ps1"
 
+function Test-LogonTask {
+    param([string]$Name)
+    schtasks.exe /Query /TN "$Name" 2>$null | Out-Null
+    return ($LASTEXITCODE -eq 0)
+}
+
 function Show-MainMenu {
     while ($true) {
+        $startupState = if (Test-LogonTask "RunStartupFolder") { "enabled" } else { "disabled" }
+        $timeState    = if (Test-LogonTask "SyncSystemTime")   { "enabled" } else { "disabled" }
+
         $menuItems = [System.Collections.ArrayList]@(
-            [PSCustomObject]@{ Id = "install"; Name = "Install dots"; Description = "pull + interactive install + load config" }
-            [PSCustomObject]@{ Id = "update";  Name = "Update dots";  Description = "git pull + sync dotfiles" }
-            [PSCustomObject]@{ Id = "cursor";  Name = "Install Cursor Scheme"; Description = "interactive cursor pack picker" }
-            [PSCustomObject]@{ Id = "ctt";     Name = "Chris Titus Windows Utility"; Description = "irm https://christitus.com/win | iex" }
-            [PSCustomObject]@{ Id = "help";    Name = "Help";         Description = "view documentation & keybindings" }
-            [PSCustomObject]@{ Id = "exit";    Name = "Exit";         Description = "close this menu" }
+            [PSCustomObject]@{ Id = "install";     Name = "Install dots"; Description = "pull + interactive install + load config" }
+            [PSCustomObject]@{ Id = "update";      Name = "Update dots";  Description = "git pull + sync dotfiles" }
+            [PSCustomObject]@{ Id = "cursor";      Name = "Install Cursor Scheme"; Description = "interactive cursor pack picker" }
+            [PSCustomObject]@{ Id = "startup_on";  Name = "Enable Startup";  Description = "run startup\ at logon (currently $startupState)" }
+            [PSCustomObject]@{ Id = "startup_off"; Name = "Disable Startup"; Description = "stop running startup\ at logon (currently $startupState)" }
+            [PSCustomObject]@{ Id = "timesync";    Name = "Fix System Time"; Description = "dual-boot clock fix + sync at logon (currently $timeState)" }
+            [PSCustomObject]@{ Id = "ctt";         Name = "Chris Titus Windows Utility"; Description = "irm https://christitus.com/win | iex" }
+            [PSCustomObject]@{ Id = "help";        Name = "Help";         Description = "view documentation & keybindings" }
+            [PSCustomObject]@{ Id = "exit";        Name = "Exit";         Description = "close this menu" }
         )
 
         $choice = Invoke-TuiSingleSelect -Title "Main Menu" -Items $menuItems -Header "Dots-Windows -- AzPepoze Dotfiles" -SubTitle "Manage dotfiles, package installations, cursors, and startup tasks."
@@ -42,6 +54,21 @@ function Show-MainMenu {
                 & "$PSScriptRoot\..\cursors\apply-cursor.ps1"
                 Wait-TuiPause "Press any key to return to the main menu..."
             }
+            "startup_on" {
+                Clear-Host
+                & "$PSScriptRoot\startup.ps1" -Mode Enable
+                Wait-TuiPause "Press any key to return to the main menu..."
+            }
+            "startup_off" {
+                Clear-Host
+                & "$PSScriptRoot\startup.ps1" -Mode Disable
+                Wait-TuiPause "Press any key to return to the main menu..."
+            }
+            "timesync" {
+                Clear-Host
+                & "$PSScriptRoot\sync-time.ps1"
+                Wait-TuiPause "Press any key to return to the main menu..."
+            }
             "ctt" {
                 Clear-Host
                 Write-TuiHeader "Chris Titus Tech Windows Utility"
@@ -61,7 +88,7 @@ function Show-MainMenu {
                 Write-Host "$script:C_BOLD$script:C_PINK Structure:$script:C_RESET"
                 Write-Host "  $script:C_WHITE dots/user$script:C_RESET     $script:C_DIM -> Copied to $env:USERPROFILE (Windows Terminal, PowerShell profile)$script:C_RESET"
                 Write-Host "  $script:C_WHITE libs/tui/$script:C_RESET     $script:C_DIM -> Shared TUI formatting and selection menus$script:C_RESET"
-                Write-Host "  $script:C_WHITE scripts/$script:C_RESET      $script:C_DIM -> Pure operational logic (install, config sync, startup runner)$script:C_RESET"
+                Write-Host "  $script:C_WHITE scripts/$script:C_RESET      $script:C_DIM -> Pure operational logic (install, config sync, startup runner, time sync)$script:C_RESET"
                 Write-Host "  $script:C_WHITE cursors/$script:C_RESET      $script:C_DIM -> Custom cursor schemes (keqing, etc.)$script:C_RESET"
                 Write-Host "  $script:C_WHITE startup/$script:C_RESET      $script:C_DIM -> AutoHotkey scripts and startup task shortcuts$script:C_RESET"
                 Write-Host ""

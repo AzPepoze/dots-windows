@@ -35,6 +35,10 @@ if (-not $codeExe) {
 Write-TuiOk "Found VS Code: $codeExe"
 Write-TuiSection "Adding Registry Keys"
 
+if (-not (Get-PSDrive -Name HKCR -ErrorAction SilentlyContinue)) {
+    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
+}
+
 $targets = @(
     @{ Path = "HKCR:\*\shell\Open with Code"; Cmd = "`"$codeExe`" `"%1`""; Label = "File" },
     @{ Path = "HKCR:\Directory\shell\Open with Code"; Cmd = "`"$codeExe`" `"%1`""; Label = "Directory" },
@@ -44,16 +48,16 @@ $targets = @(
 foreach ($t in $targets) {
     try {
         if (-not (Test-Path $t.Path)) {
-            New-Item -Path $t.Path -Force | Out-Null
+            New-Item -Path $t.Path -Force -ErrorAction Stop | Out-Null
         }
-        Set-ItemProperty -Path $t.Path -Name "(Default)" -Value "Open with Code"
-        Set-ItemProperty -Path $t.Path -Name "Icon" -Value "`"$codeExe`",0"
+        Set-ItemProperty -Path $t.Path -Name "(Default)" -Value "Open with Code" -ErrorAction Stop
+        Set-ItemProperty -Path $t.Path -Name "Icon" -Value "`"$codeExe`",0" -ErrorAction Stop
 
         $cmdPath = "$($t.Path)\command"
         if (-not (Test-Path $cmdPath)) {
-            New-Item -Path $cmdPath -Force | Out-Null
+            New-Item -Path $cmdPath -Force -ErrorAction Stop | Out-Null
         }
-        Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $t.Cmd
+        Set-ItemProperty -Path $cmdPath -Name "(Default)" -Value $t.Cmd -ErrorAction Stop
         Write-TuiOk "$($t.Label) context menu registered"
     } catch {
         Write-TuiErr "Failed to register $($t.Label) context menu: $_"
